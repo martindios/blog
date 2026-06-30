@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Blog de Martín Dios</title>
+
+    <!-- Favicon support-->
+    <link rel="icon" type="image/x-icon" href="./logo/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="./logo/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./logo/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./logo/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./logo/android-icon-192x192.png">
+
+    <meta name="description" content="Blog de Martín González Dios." id="meta-description">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://blog.martindios.com">
+    <meta property="og:title" content="Blog de Martín González Dios" id="og-title">
+    <meta property="og:description" content="Blog de Martín González Dios." id="og-description">
+
+    <meta name="theme-color" content="#ffffff" id="theme-color-meta">
+
+    <style>
+        body {
+            margin: 1.25rem auto;
+            padding: 0 1.25rem;
+            max-width: 75rem;
+            font-family: inherit;
+        }
+
+        @media (max-width: 48rem) {
+            body {
+                margin: 0.625rem auto;
+                padding: 0 0.9375rem;
+            }
+        }
+
+        .nav-logo-blog {
+            margin-left: 1rem;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select {
+            border-radius: 0.3125rem;
+            padding: 0.3125rem 0.625rem;
+            cursor: pointer;
+        }
+
+        body.dark-mode #lang-select {
+            background-color: rgb(40, 40, 40);
+            color: white;
+        }
+
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .dark-mode a {
+            color: #4a9eff;
+        }
+        .dark-mode a:visited {
+            color: #bb86fc;
+        }
+        .dark-mode hr {
+            border-color: #444;
+        }
+        body.dark-mode #dark-mode-toggle {
+            background-color: rgb(40, 40, 40);
+            color: white;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav h4 {
+            margin: 0 0.9375rem 0 0;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        button {
+            border-radius: 0.3125rem;
+            padding: 0.3125rem 0.625rem;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 75rem;
+            margin: 0 auto;
+        }
+
+        .post-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        .post-list li {
+            margin-bottom: 1.5rem;
+        }
+        .post-list a {
+            font-size: 1.125rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .post-list a:hover {
+            text-decoration: underline;
+        }
+
+        .post-meta {
+            color: #666;
+            font-size: 0.875rem;
+            margin: 0.25rem 0 0.25rem;
+        }
+        .dark-mode .post-meta {
+            color: #999;
+        }
+
+        .post-excerpt {
+            margin: 0.25rem 0 0;
+        }
+
+        body.loading {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-left">
+            <a href="https://blog.martindios.com" aria-label="Inicio"><img src="./nasa-lor/android-icon-192x192.png" alt="Logo Martindios" height="32" width="32" style="display:block;"></a>
+            <a href="https://martindios.com" target="_blank" rel="noopener noreferrer" class="nav-logo-blog">martindios.com</a>
+        </div>
+        <div class="nav-right">
+            <select id="lang-select" onchange="switchLanguage(this.value)" aria-label="Idioma">
+                <option value="es" id="lang-es">Español</option>
+                <option value="gl" id="lang-gl">Galego</option>
+                <option value="en" id="lang-en">English</option>
+            </select>
+            <button onclick="toggleDarkMode()" id="dark-mode-toggle" aria-pressed="false">Dark Mode</button>
+        </div>
+    </nav>
+
+    <hr>
+
+    <main>
+        <h1 data-i18n="page_h1">Blog</h1>
+
+        <ul class="post-list">
+            <li>
+                <a href="./nasa-lor/nasa-lor.html" data-i18n="post1_title">SQLi en la NASA: cómo conseguí mi LoR</a>
+                <p class="post-meta">30/06/2026 · Bug Bounty</p>
+                <p class="post-excerpt" data-i18n="post1_excerpt">Cómo descubrí una inyección SQL blind boolean en un subdominio de la NASA, logré bypassear el WAF y conseguí mi primera Letter of Recognition.</p>
+            </li>
+        </ul>
+    </main>
+
+    <footer>
+        <hr>
+        <p><small>Martín González Dios.</small></p>
+    </footer>
+
+    <script>
+        let translations = {};
+        let currentLang = 'es';
+
+        async function loadTranslations() {
+            try {
+                const response = await fetch('./translations-index.json');
+                translations = await response.json();
+            } catch (error) {
+                console.error('Error loading translations:', error);
+            }
+        }
+
+        function updateContent() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.innerHTML = translations[currentLang][key];
+                }
+            });
+
+            updateMetaTags();
+        }
+
+        function updateMetaTags() {
+            if (!translations[currentLang]) return;
+
+            const t = translations[currentLang];
+
+            if (t.page_title) document.getElementById('page-title').textContent = t.page_title;
+            if (t.og_title) document.getElementById('og-title').setAttribute('content', t.og_title);
+            if (t.og_description) document.getElementById('og-description').setAttribute('content', t.og_description);
+            if (t.og_description) document.getElementById('meta-description').setAttribute('content', t.og_description);
+            if (t.html_lang) document.documentElement.lang = t.html_lang;
+        }
+
+        function switchLanguage(language) {
+            currentLang = language;
+            updateContent();
+            localStorage.setItem('preferredLanguage', language);
+
+            const sel = document.getElementById('lang-select');
+            if (sel) sel.value = language;
+
+            document.documentElement.lang = language;
+        }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const button = document.getElementById('dark-mode-toggle');
+            const themeColorMeta = document.getElementById('theme-color-meta');
+
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                button.textContent = translations[currentLang]?.dark_mode || 'Dark Mode';
+                button.setAttribute('aria-pressed', 'false');
+                themeColorMeta.setAttribute('content', '#ffffff');
+                localStorage.setItem('darkMode', 'false');
+            } else {
+                body.classList.add('dark-mode');
+                button.textContent = translations[currentLang]?.light_mode || 'Light Mode';
+                button.setAttribute('aria-pressed', 'true');
+                themeColorMeta.setAttribute('content', '#1a1a1a');
+                localStorage.setItem('darkMode', 'true');
+            }
+        }
+
+        function loadPreferences() {
+            try {
+                const themeColorMeta = document.getElementById('theme-color-meta');
+
+                const savedDarkMode = localStorage.getItem('darkMode');
+                if (savedDarkMode === 'true') {
+                    document.body.classList.add('dark-mode');
+                    const button = document.getElementById('dark-mode-toggle');
+                    button.textContent = translations[currentLang]?.light_mode || 'Light Mode';
+                    button.setAttribute('aria-pressed', 'true');
+                    themeColorMeta.setAttribute('content', '#1a1a1a');
+                } else {
+                    themeColorMeta.setAttribute('content', '#ffffff');
+                }
+
+                const savedLanguage = localStorage.getItem('preferredLanguage');
+                if (savedLanguage && ['es', 'gl', 'en'].includes(savedLanguage)) {
+                    return savedLanguage;
+                }
+
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.startsWith('en')) return 'en';
+                if (browserLang.startsWith('gl')) return 'gl';
+                return 'es';
+            } catch (error) {
+                console.warn('localStorage not available:', error);
+                try {
+                    const browserLang = navigator.language || navigator.userLanguage;
+                    if (browserLang.startsWith('en')) return 'en';
+                    if (browserLang.startsWith('gl')) return 'gl';
+                } catch (e) {
+                    console.warn('Could not detect browser language');
+                }
+                return 'es';
+            }
+        }
+
+        document.body.classList.add('loading');
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadTranslations();
+
+            const defaultLang = loadPreferences();
+            switchLanguage(defaultLang);
+
+            document.body.classList.remove('loading');
+        });
+    </script>
+</body>
+</html>

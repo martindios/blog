@@ -1,0 +1,35 @@
+{
+  "es": {
+    "page_title": "Blog de Martín Dios",
+    "og_title": "Blog de Martín González Dios",
+    "og_description": "Blog de Martín González Dios.",
+    "html_lang": "es",
+    "dark_mode": "Dark Mode",
+    "light_mode": "Light Mode",
+    "page_h1": "Blog",
+    "post1_title": "SQLi en la NASA: cómo conseguí mi LoR",
+    "post1_excerpt": "Cómo descubrí una inyección SQL blind boolean en un subdominio de la NASA, logré bypassear el WAF y conseguí mi primera Letter of Recognition."
+  },
+  "gl": {
+    "page_title": "Blog de Martín Dios",
+    "og_title": "Blog de Martín González Dios",
+    "og_description": "Blog de Martín González Dios.",
+    "html_lang": "gl",
+    "dark_mode": "Modo escuro",
+    "light_mode": "Modo claro",
+    "page_h1": "Blog",
+    "post1_title": "SQLi na NASA: como conseguín a miña LoR",
+    "post1_excerpt": "Como descubrín unha inxección SQL blind boolean nun subdominio da NASA, logrei bypassear o WAF e conseguín a miña primeira Letter of Recognition."
+  },
+  "en": {
+    "page_title": "Martín Dios's Blog",
+    "og_title": "Martín González Dios's Blog",
+    "og_description": "Martín González Dios's blog.",
+    "html_lang": "en",
+    "dark_mode": "Dark Mode",
+    "light_mode": "Light Mode",
+    "page_h1": "Blog",
+    "post1_title": "SQLi at NASA: how I got my LoR",
+    "post1_excerpt": "How I discovered a blind boolean SQL injection on a NASA subdomain, managed to bypass the WAF, and earned my first Letter of Recognition."
+  }
+}
