@@ -8,7 +8,9 @@
     "light_mode": "Light Mode",
     "page_h1": "Blog",
     "post1_title": "SQLi en la NASA: cómo conseguí mi LoR",
-    "post1_excerpt": "Cómo descubrí una inyección SQL blind boolean en un subdominio de la NASA, logré bypassear el WAF y conseguí mi primera Letter of Recognition."
+    "post1_excerpt": "Cómo descubrí una inyección SQL blind boolean en un subdominio de la NASA, logré bypassear el WAF y conseguí mi primera Letter of Recognition.",
+    "post2_title": "Mi primer CVE: Open Redirect en un proyecto con +2 millones de descargas",
+    "post2_excerpt": "Cómo descubrí una vulnerabilidad en un proyecto con +2 millones de descargas, consiguiendo mi primer CVE."
   },
   "gl": {
     "page_title": "Blog de Martín Dios",
@@ -19,7 +21,9 @@
     "light_mode": "Modo claro",
     "page_h1": "Blog",
     "post1_title": "SQLi na NASA: como conseguín a miña LoR",
-    "post1_excerpt": "Como descubrín unha inxección SQL blind boolean nun subdominio da NASA, logrei bypassear o WAF e conseguín a miña primeira Letter of Recognition."
+    "post1_excerpt": "Como descubrín unha inxección SQL blind boolean nun subdominio da NASA, logrei bypassear o WAF e conseguín a miña primeira Letter of Recognition.",
+    "post2_title": "O meu primeiro CVE: Open Redirect nun proxecto con +2 millóns de descargas",
+    "post2_excerpt": "Como descubrín unha vulnerabilidade nun proxecto con +2 millóns de descargas, conseguindo meu primeiro CVE."
   },
   "en": {
     "page_title": "Martín Dios's Blog",
@@ -30,6 +34,8 @@
     "light_mode": "Light Mode",
     "page_h1": "Blog",
     "post1_title": "SQLi at NASA: how I got my LoR",
-    "post1_excerpt": "How I discovered a blind boolean SQL injection on a NASA subdomain, managed to bypass the WAF, and earned my first Letter of Recognition."
+    "post1_excerpt": "How I discovered a blind boolean SQL injection on a NASA subdomain, managed to bypass the WAF, and earned my first Letter of Recognition.",
+    "post2_title": "My first CVE: Open Redirect in a project with +2 million downloads",
+    "post2_excerpt": "How I discovered a vulnerability in a project with +2M Downloads, earning my first CVE."
   }
 }
